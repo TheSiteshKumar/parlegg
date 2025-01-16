@@ -83,7 +83,7 @@ export default function RefundPage() {
             <p>123 Investment Street, Koramangala</p>
             <p>Bangalore, Karnataka - 560034</p>
             <p>Email: refunds@parlegg.com</p>
-            <p>Phone: +91 (555) 123-4567</p>
+            <p>Phone: +91 62090 26046</p>
           </div>
         </section>
 

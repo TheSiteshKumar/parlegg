@@ -42,22 +42,23 @@ export default function ContactPage() {
             <div className="bg-gray-800 p-8 rounded-xl text-center">
               <Mail className="h-12 w-12 text-blue-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-400">support@britannia.com</p>
-              <p className="text-gray-400">info@britannia.com</p>
+              <p className="text-gray-400">support@parlegg.com</p>
+              {/* <p className="text-gray-400">info@britannia.com</p> */}
             </div>
             
             <div className="bg-gray-800 p-8 rounded-xl text-center">
               <Phone className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-gray-400">+1 (555) 123-4567</p>
-              <p className="text-gray-400">Mon - Fri, 9am - 6pm</p>
+              <p className="text-gray-400">+91 6209026046</p>
+              {/* <p className="text-gray-400">Mon - sat, 24/7</p> */}
             </div>
             
             <div className="bg-gray-800 p-8 rounded-xl text-center">
               <MapPin className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Visit Us</h3>
-              <p className="text-gray-400">123 Investment Street</p>
-              <p className="text-gray-400">London, UK EC4A 2BB</p>
+              {/* <p className="text-gray-400">123 Investment Street</p> */}
+              <p className="text-gray-400">Koramangala, Bangalore, 
+                Karnataka - 560034, India</p>
             </div>
           </div>
 
