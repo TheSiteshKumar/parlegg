@@ -14,7 +14,7 @@ export default function RefundPage() {
       
       <div className="prose prose-invert max-w-none">
         <p className="text-gray-300 mb-6">
-          This policy outlines the terms and conditions for cancellations and refunds at Parlegg, operated by VISHAL KUMAR.
+          This policy outlines the terms and conditions for cancellations and refunds at PARLEG, operated by VISHAL KUMAR.
         </p>
 
         <section className="mb-8">
@@ -79,10 +79,10 @@ export default function RefundPage() {
           </p>
           <div className="text-gray-300">
             <p>Customer Support</p>
-            <p>Parlegg Investments</p>
+            <p>PARLEG Investments</p>
             <p>123 Investment Street, Koramangala</p>
             <p>Bangalore, Karnataka - 560034</p>
-            <p>Email: refunds@parlegg.com</p>
+            <p>Email: refunds@PARLEG.com</p>
             <p>Phone: +91 62090 26046</p>
           </div>
         </section>

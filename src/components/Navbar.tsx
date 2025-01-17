@@ -15,7 +15,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto flex justify-between items-center relative">
         <Link to="/" className="flex items-center space-x-2 z-[100]">
           <Wallet className="h-6 w-6 text-blue-500" />
-          <span className="text-xl font-bold">PARLEGG</span>
+          <span className="text-xl font-bold">PARLEG</span>
         </Link>
         
         <div className="hidden md:flex items-center space-x-6">

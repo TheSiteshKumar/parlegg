@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       
       <div className="prose prose-invert max-w-none">
         <p className="text-gray-300 mb-6">
-          At Parlegg, operated by VISHAL KUMAR, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
+          At PARLEG, operated by VISHAL KUMAR, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
         </p>
 
         <section className="mb-8">
@@ -87,10 +87,10 @@ export default function PrivacyPage() {
           </p>
           <div className="text-gray-300">
             <p>VISHAL KUMAR</p>
-            <p>Parlegg Investments</p>
+            <p>PARLEG Investments</p>
             <p>123 Investment Street, Koramangala</p>
             <p>Bangalore, Karnataka - 560034</p>
-            <p>Email: privacy@parlegg.com</p>
+            <p>Email: privacy@PARLEG.com</p>
           </div>
         </section>
       </div>

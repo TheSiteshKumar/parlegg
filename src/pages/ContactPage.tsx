@@ -42,7 +42,7 @@ export default function ContactPage() {
             <div className="bg-gray-800 p-8 rounded-xl text-center">
               <Mail className="h-12 w-12 text-blue-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-400">support@parlegg.com</p>
+              <p className="text-gray-400">support@PARLEG.com</p>
               {/* <p className="text-gray-400">info@britannia.com</p> */}
             </div>
             

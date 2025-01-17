@@ -11,7 +11,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="flex items-center space-x-2 mb-4">
               <Wallet className="h-6 w-6 text-blue-500" />
-              <span className="text-xl font-bold">PARLEGG</span>
+              <span className="text-xl font-bold">PARLEG</span>
             </Link>
             <p className="text-gray-400">
               A venture by VISHAL KUMAR. Secure and profitable investment solutions for a better financial future.
@@ -73,7 +73,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center space-x-2 text-gray-400">
                 <Mail className="h-5 w-5" />
-                <span>support@parlegg.com</span>
+                <span>support@PARLEG.com</span>
               </li>
               <li className="flex items-center space-x-2 text-gray-400">
                 <Phone className="h-5 w-5" />
@@ -88,7 +88,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Parlegg by VISHAL KUMAR. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} PARLEG by VISHAL KUMAR. All rights reserved.</p>
         </div>
       </div>
     </footer>

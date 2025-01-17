@@ -14,7 +14,7 @@ export default function TermsPage() {
       
       <div className="prose prose-invert max-w-none">
         <p className="text-gray-300 mb-6">
-          Welcome to Parlegg, operated by VISHAL KUMAR. By accessing and using this website, you accept and agree to be bound by the following terms and conditions.
+          Welcome to PARLEG, operated by VISHAL KUMAR. By accessing and using this website, you accept and agree to be bound by the following terms and conditions.
         </p>
 
         <section className="mb-8">
@@ -44,7 +44,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">4. Intellectual Property</h2>
           <p className="text-gray-300 mb-4">
-            All content on this website, including but not limited to text, graphics, logos, images, and software, is the property of Parlegg and is protected by intellectual property laws.
+            All content on this website, including but not limited to text, graphics, logos, images, and software, is the property of PARLEG and is protected by intellectual property laws.
           </p>
         </section>
 
@@ -62,7 +62,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">6. Limitation of Liability</h2>
           <p className="text-gray-300 mb-4">
-            Parlegg and VISHAL KUMAR shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use our services.
+            PARLEG and VISHAL KUMAR shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use our services.
           </p>
         </section>
 
