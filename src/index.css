@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #111827;
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+@layer utilities {
+  .bg-gradient-dark {
+    background: linear-gradient(to bottom, #111827, #1F2937);
+  }
+}
