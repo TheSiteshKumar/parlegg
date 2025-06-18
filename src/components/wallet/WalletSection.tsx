@@ -7,19 +7,28 @@ import { useWallet } from '../../context/WalletContext';
 import { History } from 'lucide-react';
 
 export default function WalletSection() {
-  const { balance, totalEarnings, withdrawals } = useWallet();
+  const { balance, withdrawals, getAvailableBalance } = useWallet();
   const [showAddFunds, setShowAddFunds] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
 
+  // Calculate total withdrawn amount (before 7% processing fee)
   const totalApprovedWithdrawals = useMemo(() => {
     return withdrawals
       .filter(w => w.status === 'completed' && w.approved)
       .reduce((sum, w) => sum + w.amount, 0);
   }, [withdrawals]);
 
+  // Calculate total earnings from all sources
+  const totalAllEarnings = useMemo(() => {
+    const investmentReturns = balance.investmentReturns || 0;
+    const referralEarnings = balance.referralEarnings || 0;
+    return investmentReturns + referralEarnings;
+  }, [balance.investmentReturns, balance.referralEarnings]);
+
+  // Available Balance = Total Earnings - Total Withdrawn (before processing fee)
   const availableBalance = useMemo(() => {
-    return totalEarnings - totalApprovedWithdrawals;
-  }, [totalEarnings, totalApprovedWithdrawals]);
+    return getAvailableBalance();
+  }, [getAvailableBalance]);
 
   return (
     <div className="space-y-6">
@@ -52,8 +61,10 @@ export default function WalletSection() {
         <WalletCard
           title="Earnings Wallet"
           balance={availableBalance}
-          totalEarnings={totalEarnings}
+          totalEarnings={totalAllEarnings}
           totalWithdrawn={totalApprovedWithdrawals}
+          referralEarnings={balance.referralEarnings || 0}
+          investmentReturns={balance.investmentReturns || 0}
           actionLabel="Withdraw"
           onAction={() => setShowWithdraw(true)}
           variant="green"
@@ -66,7 +77,10 @@ export default function WalletSection() {
       )}
       
       {showWithdraw && (
-        <WithdrawModal onClose={() => setShowWithdraw(false)} />
+        <WithdrawModal 
+          onClose={() => setShowWithdraw(false)} 
+          availableBalance={availableBalance}
+        />
       )}
     </div>
   );

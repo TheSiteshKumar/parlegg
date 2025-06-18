@@ -1,30 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, User, Smartphone, Save, Edit3 } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Building, Save, Edit3 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { userProfileService, BankAccountDetails } from '../services/userProfile.service';
 
 export default function AccountPage() {
   const { user, updateProfile } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [upiId, setUpiId] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [ifscCode, setIfscCode] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Load existing user profile data
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const profile = await userProfileService.getUserProfile(user.uid);
+        if (profile?.bankAccount) {
+          setAccountNumber(profile.bankAccount.accountNumber || '');
+          setIfscCode(profile.bankAccount.ifscCode || '');
+          setAccountHolderName(profile.bankAccount.accountHolderName || '');
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
+    setSaving(true);
+    setError('');
+    
     try {
+      // Validate required fields
+      if (!displayName.trim()) {
+        setError('Display name is required');
+        return;
+      }
+      
+      // Update Firebase Auth profile
       await updateProfile({ displayName });
-      // Here you would also save UPI ID to user profile in Firebase
+      
+      // Save bank account details to Firestore (only if provided)
+      let bankAccount: BankAccountDetails | undefined;
+      
+      if (accountNumber.trim() || ifscCode.trim() || accountHolderName.trim()) {
+        // If any bank field is provided, validate all are provided
+        if (!accountNumber.trim() || !ifscCode.trim() || !accountHolderName.trim()) {
+          setError('Please fill all bank account fields or leave them all empty');
+          return;
+        }
+        
+        // Basic IFSC validation (should be 11 characters)
+        if (ifscCode.trim().length !== 11) {
+          setError('IFSC code should be 11 characters long');
+          return;
+        }
+        
+        bankAccount = {
+          accountNumber: accountNumber.trim(),
+          ifscCode: ifscCode.trim(),
+          accountHolderName: accountHolderName.trim()
+        };
+      }
+      
+      await userProfileService.saveUserProfile(user.uid, user.email || '', {
+        displayName,
+        ...(bankAccount && { bankAccount })
+      });
+      
       setSuccess(true);
-      setError('');
       setIsEditing(false);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
       setSuccess(false);
+    } finally {
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-24">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-24">
@@ -38,7 +116,7 @@ export default function AccountPage() {
             Back to Dashboard
           </Link>
           <h1 className="text-4xl font-bold mb-2">Account Settings</h1>
-          <p className="text-gray-400">Manage your account information and preferences</p>
+          <p className="text-gray-400">Manage your profile and bank account details</p>
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
@@ -103,33 +181,74 @@ export default function AccountPage() {
               </div>
 
               <div>
-                <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
-                  UPI ID for Withdrawals
+                <label htmlFor="accountHolderName" className="block text-sm font-medium text-gray-400 mb-2">
+                  Account Holder Name
                 </label>
                 <div className="relative">
-                  <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
-                    id="upiId"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
+                    id="accountHolderName"
+                    value={accountHolderName}
+                    onChange={(e) => setAccountHolderName(e.target.value)}
                     className={`w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white ${
                       !isEditing ? 'cursor-not-allowed opacity-60' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     }`}
-                    placeholder="example@upi"
+                    placeholder="Enter account holder name"
                     disabled={!isEditing}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">This will be used as default for withdrawals</p>
+              </div>
+
+              <div>
+                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
+                  Bank Account Number
+                </label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    id="accountNumber"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    className={`w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white ${
+                      !isEditing ? 'cursor-not-allowed opacity-60' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    placeholder="Enter bank account number"
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
+                  IFSC Code
+                </label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    id="ifscCode"
+                    value={ifscCode}
+                    onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+                    className={`w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white ${
+                      !isEditing ? 'cursor-not-allowed opacity-60' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    placeholder="Enter IFSC code"
+                    disabled={!isEditing}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Bank details will be used for withdrawals</p>
               </div>
 
               {isEditing && (
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  disabled={saving}
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="h-5 w-5" />
-                  Save Changes
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               )}
             </form>
@@ -160,21 +279,6 @@ export default function AccountPage() {
                   {user?.emailVerified ? 'Yes' : 'Pending'}
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
-            <h3 className="text-lg font-semibold mb-4">Security</h3>
-            <div className="space-y-3">
-              <button className="w-full text-left text-blue-400 hover:text-blue-300 transition-colors">
-                Change Password
-              </button>
-              <button className="w-full text-left text-blue-400 hover:text-blue-300 transition-colors">
-                Two-Factor Authentication
-              </button>
-              <button className="w-full text-left text-blue-400 hover:text-blue-300 transition-colors">
-                Login History
-              </button>
             </div>
           </div>
         </div>

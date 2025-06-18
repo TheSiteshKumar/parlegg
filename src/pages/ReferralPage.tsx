@@ -5,6 +5,7 @@ import ReferralCodeSection from '../components/referral/ReferralCodeSection';
 import ReferralStats from '../components/referral/ReferralStats';
 import ReferralList from '../components/referral/ReferralList';
 import ReferralRewards from '../components/referral/ReferralRewards';
+import ReferralEarningsBreakdown from '../components/referral/ReferralEarningsBreakdown';
 import { formatCurrency } from '../utils/formatters';
 
 export default function ReferralPage() {
@@ -164,6 +165,9 @@ export default function ReferralPage() {
 
         {/* Stats Overview */}
         <ReferralStats />
+
+        {/* Earnings Breakdown */}
+        <ReferralEarningsBreakdown />
 
         {/* Referrals and Rewards Grid */}
         <div className="grid lg:grid-cols-2 gap-8">

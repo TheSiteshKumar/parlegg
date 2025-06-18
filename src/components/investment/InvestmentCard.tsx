@@ -18,16 +18,16 @@ export default function InvestmentCard({
   description,
   purchaseLimit
 }: InvestmentCardProps) {
-  const { investments } = useInvestments();
+  const { purchaseCounts, loading } = useInvestments();
   
-  // Count how many times this plan has been purchased
-  const purchaseCount = investments.filter(inv => inv.planLevel === level).length;
-  
-  // Check if the plan can still be purchased
-  const canPurchase = purchaseLimit === 0 || purchaseCount < purchaseLimit;
+  // Get purchase count for this plan
+  const purchaseCount = purchaseCounts[level] || 0;
   
   // Check if this is the premium plan
   const isPremium = purchaseLimit === 0;
+  
+  // Check if the plan can still be purchased
+  const canPurchase = purchaseLimit === 0 || purchaseCount < purchaseLimit;
 
   return (
     <div className={`bg-gray-900 rounded-2xl overflow-hidden transform hover:scale-105 transition-all duration-300 border ${
@@ -74,9 +74,9 @@ export default function InvestmentCard({
           </div>
           {purchaseLimit > 0 ? (
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-yellow-500" />
-              <span className="text-gray-300">
-                {purchaseCount}/{purchaseLimit} purchases used
+              <AlertCircle className={`h-5 w-5 ${canPurchase ? 'text-yellow-500' : 'text-red-500'}`} />
+              <span className={`${canPurchase ? 'text-gray-300' : 'text-red-400'}`}>
+                {loading ? 'Loading...' : `${purchaseCount}/${purchaseLimit} purchases used`}
               </span>
             </div>
           ) : (
@@ -90,17 +90,26 @@ export default function InvestmentCard({
         </div>
         
         <Link 
-          to={canPurchase ? `/plan/${level}` : '#'}
-          className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 ${
-            isPremium
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : canPurchase
+          to={canPurchase && !loading ? `/plan/${level}` : '#'}
+          className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-colors ${
+            loading
+              ? 'bg-gray-700 cursor-not-allowed text-gray-300'
+              : isPremium
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-700 cursor-not-allowed text-gray-300'
+                : canPurchase
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-700 cursor-not-allowed text-gray-300'
           }`}
-          onClick={e => !canPurchase && e.preventDefault()}
+          onClick={e => (!canPurchase || loading) && e.preventDefault()}
         >
-          <span>{canPurchase ? 'View Details' : 'Purchase Limit Reached'}</span>
+          <span>
+            {loading 
+              ? 'Loading...' 
+              : canPurchase 
+                ? 'View Details' 
+                : 'Purchase Limit Reached'
+            }
+          </span>
         </Link>
       </div>
     </div>

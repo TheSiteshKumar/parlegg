@@ -26,3 +26,21 @@ export interface Investment {
   status?: 'active' | 'completed';
   createdAt?: string;
 }
+
+export interface PlanPurchaseHistory {
+  id?: string;
+  userId: string;
+  planLevel: string;
+  planName: string;
+  purchaseCount: number;
+  lastPurchaseDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PurchaseLimitError extends Error {
+  code: 'PURCHASE_LIMIT_EXCEEDED';
+  planName: string;
+  currentCount: number;
+  maxLimit: number;
+}

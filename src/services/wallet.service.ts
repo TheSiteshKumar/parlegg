@@ -100,14 +100,16 @@ export const walletService = {
     withdrawalId: string, 
     status: Withdrawal['status'], 
     approved: boolean,
-    transactionId?: string
+    transactionId?: string,
+    rejectionReason?: string
   ): Promise<void> {
     const docRef = doc(db, 'withdrawals', withdrawalId);
     const updateData = {
       status,
       approved,
       processedAt: new Date().toISOString(),
-      ...(transactionId && { transactionId })
+      ...(transactionId && { transactionId }),
+      ...(rejectionReason && { rejectionReason })
     };
     await updateDoc(docRef, updateData);
   }

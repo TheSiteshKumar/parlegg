@@ -1,16 +1,18 @@
 import React from 'react';
-import { Users, Gift, Target, TrendingUp, Award, Star } from 'lucide-react';
+import { Users, Gift, Target, TrendingUp, Award, Star, Wallet } from 'lucide-react';
 import { useReferral } from '../../context/ReferralContext';
+import { useWallet } from '../../context/WalletContext';
 import { formatCurrency } from '../../utils/formatters';
 import { MILESTONE_BONUSES } from '../../types/referral';
 
 export default function ReferralStats() {
   const { stats, loading } = useReferral();
+  const { balance } = useWallet();
 
   if (loading || !stats) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {[...Array(5)].map((_, i) => (
           <div key={i} className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50">
             <div className="animate-pulse">
               <div className="h-8 w-8 bg-gray-700 rounded mb-4"></div>
@@ -30,7 +32,7 @@ export default function ReferralStats() {
   return (
     <div className="space-y-8">
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50">
           <div className="flex items-center gap-3 mb-4">
             <Users className="h-6 w-6 text-blue-500" />
@@ -65,6 +67,16 @@ export default function ReferralStats() {
           </div>
           <p className="text-3xl font-bold text-yellow-500">{completedMilestones.length}</p>
           <p className="text-sm text-gray-400 mt-1">Out of {MILESTONE_BONUSES.length} total</p>
+        </div>
+
+        {/* Total Earned (All-time) - Stored in DB */}
+        <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 backdrop-blur-sm p-6 rounded-2xl border border-blue-500/30">
+          <div className="flex items-center gap-3 mb-4">
+            <Wallet className="h-6 w-6 text-blue-400" />
+            <h3 className="text-sm font-medium text-gray-400">Total Earned</h3>
+          </div>
+          <p className="text-3xl font-bold text-blue-400">{formatCurrency(balance.referralEarnings || 0)}</p>
+          <p className="text-sm text-blue-300 mt-1">All-time earnings from referral program</p>
         </div>
       </div>
 

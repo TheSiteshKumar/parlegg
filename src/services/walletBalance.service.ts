@@ -12,13 +12,21 @@ export const walletBalanceService = {
         investment: 0,
         earnings: 0,
         totalAdded: 0,
-        totalUsed: 0
+        totalUsed: 0,
+        referralEarnings: 0,
+        investmentReturns: 0
       };
       await setDoc(docRef, initialBalance);
       return initialBalance;
     }
     
-    return docSnap.data() as WalletBalance;
+    const data = docSnap.data() as WalletBalance;
+    // Ensure new fields exist for backward compatibility
+    return {
+      ...data,
+      referralEarnings: data.referralEarnings || 0,
+      investmentReturns: data.investmentReturns || 0
+    };
   },
 
   async updateBalance(userId: string, balance: Partial<WalletBalance>): Promise<void> {
@@ -49,7 +57,9 @@ export const walletBalanceService = {
       investment: 0,
       earnings: 0,
       totalAdded: 0,
-      totalUsed: 0
+      totalUsed: 0,
+      referralEarnings: 0,
+      investmentReturns: 0
     };
 
     if (currentBalance.investment < amount) {
@@ -59,6 +69,28 @@ export const walletBalanceService = {
     await updateDoc(docRef, {
       investment: currentBalance.investment - amount,
       totalUsed: currentBalance.totalUsed + amount
+    });
+  },
+
+  // Add referral earnings to both total earnings and referral earnings tracker
+  async addReferralEarnings(userId: string, amount: number): Promise<void> {
+    const docRef = doc(db, 'walletBalances', userId);
+    const currentBalance = await this.getBalance(userId);
+
+    await updateDoc(docRef, {
+      earnings: currentBalance.earnings + amount,
+      referralEarnings: (currentBalance.referralEarnings || 0) + amount
+    });
+  },
+
+  // Add investment returns to both total earnings and investment returns tracker
+  async addInvestmentReturns(userId: string, amount: number): Promise<void> {
+    const docRef = doc(db, 'walletBalances', userId);
+    const currentBalance = await this.getBalance(userId);
+
+    await updateDoc(docRef, {
+      earnings: currentBalance.earnings + amount,
+      investmentReturns: (currentBalance.investmentReturns || 0) + amount
     });
   }
 };

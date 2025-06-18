@@ -16,6 +16,8 @@ interface WalletContextType {
   totalEarnings: number;
   setTotalEarnings: (amount: number) => void;
   loadingWithdrawals: boolean;
+  refreshBalance: () => Promise<void>;
+  getAvailableBalance: () => number;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -147,9 +149,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getAvailableBalance = () => {
+    const totalApprovedWithdrawals = withdrawals
+      .filter(w => w.status === 'completed' && w.approved)
+      .reduce((sum, w) => sum + w.amount, 0);
+    
+    const totalAllEarnings = (balance.investmentReturns || 0) + (balance.referralEarnings || 0);
+    return Math.max(0, totalAllEarnings - totalApprovedWithdrawals);
+  };
+
   const withdraw = async (amount: number, paymentMethod = 'upi', upiId = '') => {
     if (!user) throw new Error('User must be logged in to withdraw');
-    if (totalEarnings < amount) throw new Error('Insufficient balance');
+    
+    const availableBalance = getAvailableBalance();
+    if (availableBalance < amount) throw new Error('Insufficient balance');
 
     try {
       const withdrawalId = await walletService.createWithdrawal(user.uid, amount, paymentMethod, upiId);
@@ -187,6 +200,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const refreshBalance = async () => {
+    if (user) {
+      try {
+        const userBalance = await walletBalanceService.getBalance(user.uid);
+        setBalance(userBalance);
+        setTotalEarnings(userBalance.earnings);
+      } catch (error) {
+        console.error('Failed to refresh balance:', error);
+      }
+    }
+  };
+
   return (
     <WalletContext.Provider value={{
       balance,
@@ -199,7 +224,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       invest,
       totalEarnings,
       setTotalEarnings,
-      loadingWithdrawals
+      loadingWithdrawals,
+      refreshBalance,
+      getAvailableBalance
     }}>
       {children}
     </WalletContext.Provider>

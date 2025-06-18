@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { Investment } from '../types/investment';
+import { Investment, PurchaseLimitError } from '../types/investment';
 import { investmentService } from '../services/investment.service';
 import { earningsService } from '../services/earnings.service';
+import { walletBalanceService } from '../services/walletBalance.service';
 import { useAuth } from '../hooks/useAuth';
 import { useWallet } from './WalletContext';
 import { useReferral } from './ReferralContext';
@@ -10,6 +11,8 @@ interface InvestmentContextType {
   investments: Investment[];
   addInvestment: (investment: Omit<Investment, 'id'>) => Promise<void>;
   loading: boolean;
+  purchaseCounts: Record<string, number>;
+  canPurchasePlan: (planLevel: string) => Promise<{ canPurchase: boolean; error?: PurchaseLimitError }>;
 }
 
 const InvestmentContext = createContext<InvestmentContextType | undefined>(undefined);
@@ -17,6 +20,7 @@ const InvestmentContext = createContext<InvestmentContextType | undefined>(undef
 export function InvestmentProvider({ children }: { children: ReactNode }) {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [purchaseCounts, setPurchaseCounts] = useState<Record<string, number>>({});
   const { user } = useAuth();
   const { addEarnings, setTotalEarnings } = useWallet();
   const { processReferralReward } = useReferral();
@@ -28,7 +32,7 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
     setTotalEarnings(total);
   }, [investments, setTotalEarnings]);
 
-  const processEarnings = useCallback(() => {
+  const processEarnings = useCallback(async () => {
     if (!user || investments.length === 0) return;
 
     const now = new Date();
@@ -48,6 +52,14 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
     const dailyEarnings = earningsService.calculateDailyEarnings(investments);
     if (dailyEarnings > 0) {
       addEarnings(dailyEarnings);
+      // Add to investment returns tracker
+      if (user) {
+        try {
+          await walletBalanceService.addInvestmentReturns(user.uid, dailyEarnings);
+        } catch (error) {
+          console.error('Failed to update investment returns:', error);
+        }
+      }
       setLastEarningsUpdate(now);
       updateTotalEarnings();
       
@@ -64,13 +76,19 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
     }
   }, [user, investments, addEarnings, lastEarningsUpdate, updateTotalEarnings]);
 
-  // Load investments on mount and user change
+  // Load investments and purchase counts on mount and user change
   useEffect(() => {
     const loadInvestments = async () => {
       if (user) {
         try {
-          const userInvestments = await investmentService.getUserInvestments(user.uid);
+          const [userInvestments, counts] = await Promise.all([
+            investmentService.getUserInvestments(user.uid),
+            investmentService.getUserPurchaseCounts(user.uid)
+          ]);
+          
           setInvestments(userInvestments);
+          setPurchaseCounts(counts);
+          
           // Calculate total earnings when investments are loaded
           const total = earningsService.calculateTotalEarningsToDate(userInvestments);
           setTotalEarnings(total);
@@ -81,6 +99,7 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setInvestments([]);
+        setPurchaseCounts({});
         setLoading(false);
       }
     };
@@ -101,6 +120,13 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
     try {
       const id = await investmentService.createInvestment(user.uid, investment);
       setInvestments(prev => [...prev, { ...investment, id }]);
+      
+      // Update purchase counts
+      setPurchaseCounts(prev => ({
+        ...prev,
+        [investment.planLevel]: (prev[investment.planLevel] || 0) + 1
+      }));
+      
       updateTotalEarnings();
 
       // Process referral reward if this is the user's first investment
@@ -116,8 +142,19 @@ export function InvestmentProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const canPurchasePlan = async (planLevel: string): Promise<{ canPurchase: boolean; error?: PurchaseLimitError }> => {
+    if (!user) return { canPurchase: false };
+    return investmentService.canPurchasePlan(user.uid, planLevel);
+  };
+
   return (
-    <InvestmentContext.Provider value={{ investments, addInvestment, loading }}>
+    <InvestmentContext.Provider value={{ 
+      investments, 
+      addInvestment, 
+      loading, 
+      purchaseCounts, 
+      canPurchasePlan 
+    }}>
       {children}
     </InvestmentContext.Provider>
   );

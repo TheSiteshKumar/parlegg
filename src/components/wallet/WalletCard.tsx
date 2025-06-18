@@ -9,6 +9,8 @@ interface WalletCardProps {
   totalWithdrawn?: number;
   totalAdded?: number;
   totalUsed?: number;
+  referralEarnings?: number;
+  investmentReturns?: number;
   actionLabel: string;
   onAction: () => void;
   variant?: 'blue' | 'green';
@@ -22,6 +24,8 @@ export default function WalletCard({
   totalWithdrawn,
   totalAdded,
   totalUsed,
+  referralEarnings,
+  investmentReturns,
   actionLabel,
   onAction,
   variant = 'blue',
@@ -48,17 +52,26 @@ export default function WalletCard({
         
         {totalEarnings !== undefined && totalWithdrawn !== undefined && (
           <div className="mt-3 space-y-1">
+            
             <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Investment Returns</span>
-              <span className="text-green-400">{formatCurrency(totalEarnings)}</span>
+              <span className="text-gray-400">• Investment Returns</span>
+              <span className="text-green-400">{formatCurrency(investmentReturns || 0)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Referral Rewards</span>
-              <span className="text-green-400">{formatCurrency(0)}</span>
+              <span className="text-gray-400">• Referral Rewards</span>
+              <span className="text-purple-400">{formatCurrency(referralEarnings || 0)}</span>
+            </div>
+            <div className="flex justify-between text-xs border-t border-gray-700 pt-1 mt-2">
+              <span className="text-gray-300 font-medium">Total Earned</span>
+              <span className="text-white font-semibold">{formatCurrency(totalEarnings)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Total Withdrawn</span>
-              <span className="text-gray-300">{formatCurrency(totalWithdrawn)}</span>
+              <span className="text-red-400">- Total Withdrawn </span>
+              <span className="text-red-400">-{formatCurrency(totalWithdrawn)}</span>
+            </div>
+            <div className="flex justify-between text-xs border-t border-gray-700 pt-1 mt-2">
+              <span className="text-blue-300 font-medium">= Available Balance</span>
+              <span className="text-blue-400 font-bold">{formatCurrency(Math.max(0, totalEarnings - totalWithdrawn))}</span>
             </div>
           </div>
         )}

@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { ReferralCode, Referral, ReferralReward, ReferralStats, REFERRAL_REWARDS, MILESTONE_BONUSES } from '../types/referral';
+import { walletBalanceService } from './walletBalance.service';
 
 export const referralService = {
   // Generate a unique referral code
@@ -117,7 +118,7 @@ export const referralService = {
             planPurchasedAt: new Date().toISOString()
           });
 
-          // Create reward for referrer
+          // Create reward for referrer and add to wallet
           await addDoc(collection(db, 'referralRewards'), {
             userId: referral.referrerId,
             type: 'referral',
@@ -129,7 +130,10 @@ export const referralService = {
             creditedAt: new Date().toISOString()
           });
 
-          // Create reward for referee
+          // Add referral earnings to referrer's wallet
+          await walletBalanceService.addReferralEarnings(referral.referrerId, rewards.referrer);
+
+          // Create reward for referee and add to wallet
           await addDoc(collection(db, 'referralRewards'), {
             userId: refereeId,
             type: 'referral',
@@ -140,6 +144,9 @@ export const referralService = {
             createdAt: new Date().toISOString(),
             creditedAt: new Date().toISOString()
           });
+
+          // Add referral earnings to referee's wallet
+          await walletBalanceService.addReferralEarnings(refereeId, rewards.referee);
 
           // Check for milestone bonuses
           await this.checkMilestoneBonuses(referral.referrerId);
@@ -175,6 +182,9 @@ export const referralService = {
             createdAt: new Date().toISOString(),
             creditedAt: new Date().toISOString()
           });
+
+          // Add milestone bonus to user's wallet
+          await walletBalanceService.addReferralEarnings(userId, milestone.bonus);
         }
       }
     }

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useWallet } from '../context/WalletContext';
-import { Clock, ArrowLeft, CheckCircle, XCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Clock, ArrowLeft, CheckCircle, XCircle, TrendingUp, TrendingDown, CreditCard, Smartphone, Calendar, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
@@ -104,45 +104,127 @@ export default function WithdrawalHistoryPage() {
       </div>
 
       {withdrawals.length === 0 ? (
-        <div className="bg-gray-800 rounded-xl p-8 text-center">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 text-center border border-gray-700/50">
           <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">No Withdrawals Yet</h3>
-          <p className="text-gray-400">Your withdrawal history will appear here</p>
+          <p className="text-gray-400 mb-4">Your withdrawal history will appear here</p>
+          <Link 
+            to="/dashboard" 
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          >
+            Start Withdrawing
+          </Link>
         </div>
       ) : (
-        <div className="bg-gray-800 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-900">
-                <tr>
-                  <th className="text-left p-4">Date</th>
-                  <th className="text-left p-4">Amount</th>
-                  <th className="text-left p-4">Status</th>
-                  <th className="text-left p-4">Transaction ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawals.map((withdrawal) => (
-                  <tr 
-                    key={withdrawal.id || `${withdrawal.timestamp}-${withdrawal.amount}`}
-                    className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors"
-                  >
-                    <td className="p-4">{formatDate(withdrawal.timestamp)}</td>
-                    <td className="p-4">{formatCurrency(withdrawal.amount)}</td>
-                    <td className="p-4">
+        <div className="space-y-4">
+          {withdrawals.map((withdrawal) => (
+            <div 
+              key={withdrawal.id || `${withdrawal.timestamp}-${withdrawal.amount}`}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                {/* Left Section - Main Info */}
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-gray-700/50 rounded-lg">
+                    {withdrawal.paymentMethod === 'upi' ? (
+                      <Smartphone className="h-6 w-6 text-blue-400" />
+                    ) : (
+                      <CreditCard className="h-6 w-6 text-green-400" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold">{formatCurrency(withdrawal.amount)}</h3>
                       <span className={getStatusBadge(withdrawal.status, withdrawal.approved)}>
                         {getStatusIcon(withdrawal.status, withdrawal.approved)}
                         {getStatusText(withdrawal.status, withdrawal.approved)}
                       </span>
-                    </td>
-                    <td className="p-4 text-gray-400">
-                      {withdrawal.transactionId || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {formatDate(withdrawal.timestamp)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {withdrawal.paymentMethod === 'upi' ? (
+                          <>
+                            <Smartphone className="h-4 w-4" />
+                            UPI Transfer
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="h-4 w-4" />
+                            Bank Transfer
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Section - Details */}
+                <div className="flex flex-col sm:flex-row gap-4 lg:text-right">
+                  {withdrawal.transactionId && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Transaction ID</p>
+                      <p className="text-sm font-mono bg-gray-700/50 px-2 py-1 rounded text-blue-400">
+                        {withdrawal.transactionId}
+                      </p>
+                    </div>
+                  )}
+                  {withdrawal.upiId && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">UPI ID</p>
+                      <p className="text-sm font-mono bg-gray-700/50 px-2 py-1 rounded">
+                        {withdrawal.upiId}
+                      </p>
+                    </div>
+                  )}
+                  {withdrawal.status === 'pending' && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Estimated Time</p>
+                      <p className="text-sm text-yellow-400">Within 24 hours</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Processing Fee Info */}
+              <div className="mt-4 pt-4 border-t border-gray-700/50">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-400">Requested Amount</p>
+                    <p className="font-semibold">{formatCurrency(withdrawal.amount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Processing Fee (7%)</p>
+                    <p className="font-semibold text-red-400">-{formatCurrency(withdrawal.amount * 0.07)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Net Amount</p>
+                    <p className="font-semibold text-green-400">{formatCurrency(withdrawal.amount * 0.93)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Payment Method</p>
+                    <p className="font-semibold capitalize">{withdrawal.paymentMethod || 'Bank'}</p>
+                  </div>
+                </div>
+                
+                {/* Rejection Reason */}
+                {withdrawal.status === 'failed' && withdrawal.rejectionReason && (
+                  <div className="mt-4 pt-4 border-t border-gray-700/50">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <XCircle className="h-4 w-4 text-red-400" />
+                        <p className="text-red-400 font-medium text-sm">Rejection Reason</p>
+                      </div>
+                      <p className="text-sm text-gray-300">{withdrawal.rejectionReason}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

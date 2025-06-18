@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useReferral } from '../../context/ReferralContext';
 import { referralService } from '../../services/referral.service';
 import { User, Mail, Lock, Gift } from 'lucide-react';
 import AuthLayout from './AuthLayout';
@@ -21,19 +20,21 @@ export default function SignUp() {
   useEffect(() => {
     const refCode = searchParams.get('ref');
     if (refCode) {
-      setReferralCode(refCode);
-      validateReferralCode(refCode);
+      const trimmedRefCode = refCode.trim().toUpperCase();
+      setReferralCode(trimmedRefCode);
+      validateReferralCode(trimmedRefCode);
     }
   }, [searchParams]);
 
   const validateReferralCode = async (code: string) => {
-    if (!code.trim()) {
+    const trimmedCode = code.trim().toUpperCase();
+    if (!trimmedCode) {
       setReferralValid(null);
       return;
     }
 
     try {
-      const result = await referralService.validateReferralCode(code);
+      const result = await referralService.validateReferralCode(trimmedCode);
       setReferralValid(result.isValid);
     } catch (error) {
       setReferralValid(false);
@@ -41,7 +42,7 @@ export default function SignUp() {
   };
 
   const handleReferralCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const code = e.target.value.toUpperCase();
+    const code = e.target.value.trim().toUpperCase();
     setReferralCode(code);
     
     if (code.length === 8) {
@@ -59,14 +60,15 @@ export default function SignUp() {
       // If there's a valid referral code, create the referral relationship
       if (referralCode && referralValid && user) {
         try {
-          const referrerInfo = await referralService.validateReferralCode(referralCode);
+          const trimmedReferralCode = referralCode.trim().toUpperCase();
+          const referrerInfo = await referralService.validateReferralCode(trimmedReferralCode);
           if (referrerInfo.isValid) {
             await referralService.createReferral(
               referrerInfo.userId,
               user.uid,
               email,
               name,
-              referralCode
+              trimmedReferralCode
             );
           }
         } catch (referralError) {
