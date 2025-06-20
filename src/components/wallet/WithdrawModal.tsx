@@ -22,7 +22,7 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
   const { user } = useAuth();
   const { withdraw } = useWallet();
 
-  const MIN_WITHDRAWAL = 120;
+  const MIN_WITHDRAWAL = 100;
   const PROCESSING_FEE_PERCENT = 7;
 
   useEffect(() => {
@@ -54,8 +54,8 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
     e.preventDefault();
     const numAmount = parseFloat(amount);
 
-    if (availableBalance <= 0) {
-      setError('No funds available for withdrawal');
+    if (availableBalance < MIN_WITHDRAWAL) {
+      setError(`Minimum balance of ${formatCurrency(MIN_WITHDRAWAL)} required in earnings wallet`);
       return;
     }
 
@@ -65,7 +65,7 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
     }
 
     if (numAmount > availableBalance) {
-      setError('Amount exceeds available balance');
+      setError('Amount exceeds available balance in earnings wallet');
       return;
     }
 
@@ -100,7 +100,7 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
         <div className="bg-gray-800 rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center p-6 border-b border-gray-700">
             <div>
-              <h3 className="text-xl font-semibold">Withdraw Earnings</h3>
+              <h3 className="text-xl font-semibold">Withdraw from Earnings Wallet</h3>
               <div className="flex items-center gap-2 mt-1">
                 <Clock className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-500 font-medium">24/7 Withdrawal Available</span>
@@ -120,6 +120,16 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
                 {error}
               </div>
             )}
+
+            {/* Available Balance Info */}
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="h-5 w-5 text-green-500" />
+                <span className="font-medium text-green-400">Earnings Wallet Balance</span>
+              </div>
+              <p className="text-2xl font-bold text-green-400">{formatCurrency(availableBalance)}</p>
+              <p className="text-sm text-gray-400 mt-1">Available for withdrawal</p>
+            </div>
 
             {/* Account Details Section */}
             {!loadingProfile && (
@@ -185,7 +195,7 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Processing Time:</span>
-                        <span className="font-medium text-blue-400">24/7</span>
+                        <span className="font-medium text-blue-400">24 hours</span>
                       </div>
                     </div>
                   </div>
@@ -193,9 +203,12 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
               </div>
             )}
 
-            {availableBalance <= 0 ? (
+            {availableBalance < MIN_WITHDRAWAL ? (
               <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-500 rounded-lg p-4 mb-6">
-                No funds available for withdrawal at this time
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  <span>Minimum {formatCurrency(MIN_WITHDRAWAL)} required in earnings wallet for withdrawal</span>
+                </div>
               </div>
             ) : (
               <>
@@ -247,6 +260,18 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
+                      onClick={() => setPaymentMethod('bank')}
+                      className={`p-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2 ${
+                        paymentMethod === 'bank'
+                          ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                          : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
+                      }`}
+                    >
+                      <CreditCard className="h-5 w-5" />
+                      Bank Transfer
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setPaymentMethod('upi')}
                       className={`p-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2 ${
                         paymentMethod === 'upi'
@@ -256,18 +281,6 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
                     >
                       <Smartphone className="h-5 w-5" />
                       UPI
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('bank')}
-                      className={`p-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2 ${
-                        paymentMethod === 'bank'
-                          ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                          : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
-                      }`}
-                    >
-                      <CreditCard className="h-5 w-5" />
-                      Bank
                     </button>
                   </div>
                 </div>
@@ -307,15 +320,15 @@ export default function WithdrawModal({ onClose, availableBalance }: WithdrawMod
             
             <button
               type="submit"
-              disabled={availableBalance <= 0 || (paymentMethod === 'bank' && !bankDetails) || loadingProfile}
+              disabled={availableBalance < MIN_WITHDRAWAL || (paymentMethod === 'bank' && !bankDetails) || loadingProfile}
               className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-                availableBalance <= 0 || (paymentMethod === 'bank' && !bankDetails) || loadingProfile
+                availableBalance < MIN_WITHDRAWAL || (paymentMethod === 'bank' && !bankDetails) || loadingProfile
                   ? 'bg-gray-600 cursor-not-allowed text-gray-400'
                   : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
             >
               {loadingProfile ? 'Loading...' : 
-               availableBalance <= 0 ? 'No Funds Available' : 
+               availableBalance < MIN_WITHDRAWAL ? `Need ${formatCurrency(MIN_WITHDRAWAL)} Minimum` : 
                (paymentMethod === 'bank' && !bankDetails) ? 'Add Bank Details First' : 
                'Proceed to Withdraw'}
             </button>

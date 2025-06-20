@@ -15,6 +15,7 @@ interface WalletCardProps {
   onAction: () => void;
   variant?: 'blue' | 'green';
   subtitle?: string;
+  disabled?: boolean;
 }
 
 export default function WalletCard({
@@ -29,12 +30,15 @@ export default function WalletCard({
   actionLabel,
   onAction,
   variant = 'blue',
-  subtitle
+  subtitle,
+  disabled = false
 }: WalletCardProps) {
   const baseButtonClass = "w-full py-3 rounded-xl font-semibold transition-colors";
-  const buttonClass = variant === 'blue' 
-    ? `${baseButtonClass} bg-blue-600 hover:bg-blue-700`
-    : `${baseButtonClass} bg-green-600 hover:bg-green-700`;
+  const buttonClass = disabled 
+    ? `${baseButtonClass} bg-gray-600 cursor-not-allowed text-gray-400`
+    : variant === 'blue' 
+      ? `${baseButtonClass} bg-blue-600 hover:bg-blue-700`
+      : `${baseButtonClass} bg-green-600 hover:bg-green-700`;
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50">
@@ -50,9 +54,27 @@ export default function WalletCard({
         <p className="text-xs text-gray-400 mb-1">Available Balance</p>
         <p className="text-3xl font-bold tracking-tight">{formatCurrency(balance)}</p>
         
+        {/* Investment Wallet Details */}
+        {totalAdded !== undefined && totalUsed !== undefined && (
+          <div className="mt-3 space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Total Added</span>
+              <span className="text-blue-400">{formatCurrency(totalAdded ?? 0)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Total Used</span>
+              <span className="text-gray-300">{formatCurrency(totalUsed ?? 0)}</span>
+            </div>
+            <div className="flex justify-between text-xs border-t border-gray-700 pt-1 mt-2">
+              <span className="text-blue-300 font-medium">= Available Balance</span>
+              <span className="text-blue-400 font-bold">{formatCurrency(balance)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Earnings Wallet Details */}
         {totalEarnings !== undefined && totalWithdrawn !== undefined && (
           <div className="mt-3 space-y-1">
-            
             <div className="flex justify-between text-xs">
               <span className="text-gray-400">• Investment Returns</span>
               <span className="text-green-400">{formatCurrency(investmentReturns || 0)}</span>
@@ -66,32 +88,28 @@ export default function WalletCard({
               <span className="text-white font-semibold">{formatCurrency(totalEarnings)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-red-400">- Total Withdrawn </span>
+              <span className="text-red-400">- Total Withdrawn</span>
               <span className="text-red-400">-{formatCurrency(totalWithdrawn)}</span>
             </div>
             <div className="flex justify-between text-xs border-t border-gray-700 pt-1 mt-2">
-              <span className="text-blue-300 font-medium">= Available Balance</span>
-              <span className="text-blue-400 font-bold">{formatCurrency(Math.max(0, totalEarnings - totalWithdrawn))}</span>
+              <span className="text-green-300 font-medium">= Available Balance</span>
+              <span className="text-green-400 font-bold">{formatCurrency(balance)}</span>
             </div>
-          </div>
-        )}
-
-        {totalAdded !== undefined && totalUsed !== undefined && (
-          <div className="mt-3 space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Total Added</span>
-              <span className="text-blue-400">{formatCurrency(totalAdded ?? 0)}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Total Used</span>
-              <span className="text-gray-300">{formatCurrency(totalUsed ?? 0)}</span>
-            </div>
+            
+            {balance < 100 && (
+              <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-400 text-xs">
+                  Minimum ₹100 required for withdrawal
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <button
         onClick={onAction}
+        disabled={disabled}
         className={buttonClass}
       >
         {actionLabel}

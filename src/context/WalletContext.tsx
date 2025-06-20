@@ -17,7 +17,7 @@ interface WalletContextType {
   setTotalEarnings: (amount: number) => void;
   loadingWithdrawals: boolean;
   refreshBalance: () => Promise<void>;
-  getAvailableBalance: () => number;
+  getAvailableEarningsBalance: () => number;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -27,7 +27,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     investment: 0,
     earnings: 0,
     totalAdded: 0,
-    totalUsed: 0
+    totalUsed: 0,
+    referralEarnings: 0,
+    investmentReturns: 0
   });
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -149,7 +151,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getAvailableBalance = () => {
+  // Calculate available balance in earnings wallet
+  const getAvailableEarningsBalance = () => {
     const totalApprovedWithdrawals = withdrawals
       .filter(w => w.status === 'completed' && w.approved)
       .reduce((sum, w) => sum + w.amount, 0);
@@ -158,11 +161,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return Math.max(0, totalAllEarnings - totalApprovedWithdrawals);
   };
 
-  const withdraw = async (amount: number, paymentMethod = 'upi', upiId = '') => {
+  const withdraw = async (amount: number, paymentMethod = 'bank', upiId = '') => {
     if (!user) throw new Error('User must be logged in to withdraw');
     
-    const availableBalance = getAvailableBalance();
-    if (availableBalance < amount) throw new Error('Insufficient balance');
+    const availableBalance = getAvailableEarningsBalance();
+    if (availableBalance < amount) throw new Error('Insufficient balance in earnings wallet');
+    if (amount < 100) throw new Error('Minimum withdrawal amount is ₹100');
 
     try {
       const withdrawalId = await walletService.createWithdrawal(user.uid, amount, paymentMethod, upiId);
@@ -226,7 +230,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setTotalEarnings,
       loadingWithdrawals,
       refreshBalance,
-      getAvailableBalance
+      getAvailableEarningsBalance
     }}>
       {children}
     </WalletContext.Provider>

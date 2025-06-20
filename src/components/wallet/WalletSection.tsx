@@ -7,7 +7,7 @@ import { useWallet } from '../../context/WalletContext';
 import { History } from 'lucide-react';
 
 export default function WalletSection() {
-  const { balance, withdrawals, getAvailableBalance } = useWallet();
+  const { balance, withdrawals, getAvailableEarningsBalance } = useWallet();
   const [showAddFunds, setShowAddFunds] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
 
@@ -25,10 +25,10 @@ export default function WalletSection() {
     return investmentReturns + referralEarnings;
   }, [balance.investmentReturns, balance.referralEarnings]);
 
-  // Available Balance = Total Earnings - Total Withdrawn (before processing fee)
-  const availableBalance = useMemo(() => {
-    return getAvailableBalance();
-  }, [getAvailableBalance]);
+  // Available Balance in Earnings Wallet = Total Earnings - Total Withdrawn
+  const availableEarningsBalance = useMemo(() => {
+    return getAvailableEarningsBalance();
+  }, [getAvailableEarningsBalance]);
 
   return (
     <div className="space-y-6">
@@ -47,6 +47,7 @@ export default function WalletSection() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Investment Wallet */}
         <WalletCard
           title="Investment Wallet"
           balance={balance.investment}
@@ -58,17 +59,19 @@ export default function WalletSection() {
           subtitle="Add funds to start investing"
         />
         
+        {/* Earnings Wallet */}
         <WalletCard
           title="Earnings Wallet"
-          balance={availableBalance}
+          balance={availableEarningsBalance}
           totalEarnings={totalAllEarnings}
           totalWithdrawn={totalApprovedWithdrawals}
           referralEarnings={balance.referralEarnings || 0}
           investmentReturns={balance.investmentReturns || 0}
-          actionLabel="Withdraw"
+          actionLabel={availableEarningsBalance >= 100 ? "Withdraw" : "Minimum ₹100 Required"}
           onAction={() => setShowWithdraw(true)}
           variant="green"
           subtitle="Your investment returns & referral rewards"
+          disabled={availableEarningsBalance < 100}
         />
       </div>
 
@@ -79,7 +82,7 @@ export default function WalletSection() {
       {showWithdraw && (
         <WithdrawModal 
           onClose={() => setShowWithdraw(false)} 
-          availableBalance={availableBalance}
+          availableBalance={availableEarningsBalance}
         />
       )}
     </div>
